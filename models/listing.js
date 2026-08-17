@@ -1,5 +1,3 @@
-
-const { ref, string } = require("joi");
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -11,11 +9,11 @@ const listingSchema = new mongoose.Schema(
     {
         title: {
             type: String,
-            require: true
+            required: true
         },
         description: {
             type: String,
-            require: true
+            required: true
         },
         image: {
             url: String,
@@ -23,15 +21,15 @@ const listingSchema = new mongoose.Schema(
         },
         price: {
             type: Number,
-            require: true
+            required: true
         },
         location: {
             type: String,
-            require: true
+            required: true
         },
         country: {
             type: String,
-            require: true
+            required: true
         },
         reviews: [
             {
@@ -42,15 +40,18 @@ const listingSchema = new mongoose.Schema(
         owner: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
         },
         geometry: {
             type: {
                 type: String, // Don't do `{ location: { type: String } }`
                 enum: ['Point'], // 'location.type' must be 'Point'
+                default: "Point",
                 required: true
             },
             coordinates: {
                 type: [Number],
+                default: [77.209, 28.6139],
                 required: true
             }
         },

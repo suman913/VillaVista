@@ -1,5 +1,3 @@
-
-const { string } = require("joi");
 const mongoose = require("mongoose");
 
 const ReviewSchema = new mongoose.Schema({
@@ -10,14 +8,14 @@ const ReviewSchema = new mongoose.Schema({
     },
 
     rating: {
-        type: String,
+        type: Number,
         min: 1,
         max: 5,
     },
 
     Date: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
 
     },
     author:{

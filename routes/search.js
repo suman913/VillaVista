@@ -1,24 +1,24 @@
 const express = require("express");
 const router = express.Router();
-const { isLoggedIn, isOwner, validateListing } = require("../middleware.js");
 const wrapAsync = require("../utils/wrapAsync.js");
 
 const listings = require("../models/listing");
 
-
-
-router.post("/",async(req,res)=>{
-    // console.log(req.query.search);
-    const nameQuery = req.body.search;
-    console.log(nameQuery);
-
- const results = await listings.find({ location: new RegExp(nameQuery, "i") });
- console.log(results);
+router.post("/", wrapAsync(async(req,res)=>{
+    const nameQuery = (req.body.search || "").trim();
+    const results = nameQuery
+        ? await listings.find({
+            $or: [
+                { location: new RegExp(nameQuery, "i") },
+                { title: new RegExp(nameQuery, "i") },
+                { country: new RegExp(nameQuery, "i") },
+                { category: new RegExp(nameQuery, "i") },
+            ],
+        })
+        : [];
 
     res.render("../views/listings/search.ejs", { results });
-    // const alistings=await 
-
-});
+}));
 
 
 

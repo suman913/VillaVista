@@ -14,7 +14,7 @@
     </div>
     <div class="col-6 offset-2 listing-card">
       <div class="card listing-card">
-        <img src="<%= listing.image.url %>" class="card-img-top show-img" alt="listing_image">
+        <img src="<%= listing.image && listing.image.url ? listing.image.url : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80' %>" class="card-img-top show-img" alt="listing_image">
         <div class="card-body">
           <p class="card-text">
             <b class="font-title">
@@ -22,7 +22,7 @@
             </b>
 
           <p class="card-text">
-            @ <%= listing.owner.username %>
+            @ <%= listing.owner ? listing.owner.username : "Unknown host" %>
           </p>
           <p class="card-text">
             <%= listing.description %>
@@ -38,7 +38,7 @@
           </p>
         </div>
       </div>
-      <% if (currUser && listing.owner._id.equals(currUser._id)) { %>
+      <% if (currUser && listing.owner && listing.owner._id.equals(currUser._id)) { %>
         <div class="btns">
           <!-- Edit Button -->
           <a href="/listings/<%= listing._id %>/edit">
@@ -97,7 +97,7 @@
                   <div class="card col-5 mb-3 ms-3 ">
                     <div class="card-body">
                       <h5 class="card-title">
-                        @<%= review.author.username %>
+                        @<%= review.author ? review.author.username : "Deleted user" %>
                       </h5>
                       </p>
 
@@ -108,7 +108,7 @@
                         <%= review.Comment %>
 
                     </div>
-                    <% if (currUser) { %>
+                    <% if (currUser && review.author && review.author._id.equals(currUser._id)) { %>
                       <form method="POST" action="/listings/<%= listing._id %>/reviews/<%=review._id %>?_method=DELETE">
                         <button class="btn btn-dark mb-3 mt-3">Delete</button>
                       </form>

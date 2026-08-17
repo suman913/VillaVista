@@ -3,8 +3,7 @@ const router = express.Router({ mergeParams: true });
 const wrapAsync = require("../utils/wrapAsync.js");
 const ExpressError = require("../utils/ExpressError.js");
 let { reviewSchema } = require("../schema.js");
-const { isLoggedIn, isOwner, validateListing,isReviewauthor } = require("../middleware.js");
-const { deleteReview } = require("../controller/reviews.js");
+const { isLoggedIn, isReviewauthor } = require("../middleware.js");
 let ReviewController = require("../controller/reviews.js");
 
 //server side validation
@@ -12,7 +11,7 @@ const validateReview = (req, res, next) => {
     let { error } = reviewSchema.validate(req.body);
     if (error) {
         let errMsg = error.details.map((el) => el.message).join(",");
-        throw new ExpressError(400, error);
+        throw new ExpressError(400, errMsg);
     } else {
         next();
     }

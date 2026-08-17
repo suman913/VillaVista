@@ -9,8 +9,6 @@ const methodoverride = require("method-override");
 const path = require("path");
 const ExpressError = require("./utils/ExpressError.js");
 const ejsMate = require("ejs-mate");
-const listings = require("./models/listing.js");
-
 const ListingRouter = require("./routes/listing.js");
 const categoryRouter=require("./routes/category.js");
 const reviewRouter = require("./routes/review.js");
@@ -27,16 +25,16 @@ const User = require("./models/user.js");
 app.use(methodoverride("_method"));
 
 app.set("views", path.join(__dirname, "views"));
-app.set("viewengine", "ejs");
+app.set("view engine", "ejs");
 
 
 
-app.use(express.urlencoded({ extends: true }));
+app.use(express.urlencoded({ extended: true }));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname, "public")));
 
 const sessionOption = {
-  secret: "mysupersecrtecode",
+  secret: process.env.SESSION_SECRET || "local-dev-secret",
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -53,34 +51,41 @@ app.use(passport.session());
 
 passport.use(new LocalStrategy(User.authenticate()));
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        let user = await User.findOne({ googleId: profile.id });
+const isGoogleAuthConfigured =
+  process.env.GOOGLE_CLIENT_ID &&
+  process.env.GOOGLE_CLIENT_SECRET &&
+  process.env.GOOGLE_CALLBACK_URL;
 
-        if (!user) {
-          user = new User({
-            googleId: profile.id,
-            email: profile.emails[0].value,
-            username:
-              profile.displayName || profile.emails[0].value.split("@")[0],
-          });
-          await user.save();
+if (isGoogleAuthConfigured) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          let user = await User.findOne({ googleId: profile.id });
+
+          if (!user) {
+            user = new User({
+              googleId: profile.id,
+              email: profile.emails[0].value,
+              username:
+                profile.displayName || profile.emails[0].value.split("@")[0],
+            });
+            await user.save();
+          }
+
+          return done(null, user);
+        } catch (err) {
+          return done(err, null);
         }
-
-        return done(null, user);
-      } catch (err) {
-        return done(err, null);
       }
-    }
-  )
-);
+    )
+  );
+}
 
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
@@ -106,7 +111,7 @@ main()
   .catch((err) => console.log(err));
 
 async function main() {
-  await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust");
+  await mongoose.connect(process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust");
 }
 
 app.all("*", (req, res, next) => {
@@ -116,13 +121,12 @@ app.all("*", (req, res, next) => {
 app.use((err, req, res, next) => {
   let { statusCode = 404, message = "page Not Found" } = err;
   res.status(statusCode).render("error.ejs", { message });
-
-  next();
 });
 
 
 
 
-app.listen(3003, (req, res) => {
-  console.log("server started on port 3003");
+const port = process.env.PORT || 3003;
+app.listen(port, () => {
+  console.log(`server started on port ${port}`);
 });
